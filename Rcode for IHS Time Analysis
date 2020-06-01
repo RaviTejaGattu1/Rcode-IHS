@@ -1,0 +1,108 @@
+Delivery Metrics :
+------------------
+# Network Level:
+
+setdel<-read.csv(the file extracted from part2 job etl)
+
+setdel$spr<-setdel$count
+
+setdel$spozh<-(setdel$count)/((setdel$delivery_length_of_part)/60))
+
+#remove inf if any 
+is.na(setdel)<-sapply(setdel, is.infinite)
+df[is.na(df)]<-0
+
+networkleveldel<- summarise(
+	setdel
+, avgspr=mean(spr)
+, p50spr=(quantile(spr,probs=0.5))
+, p90spr=(quantile(spr,probs=0.9))
+, avgspozh=mean(spozh)
+, p50spozh=(quantile(spozh,probs=0.5))
+, p90spozh=(quantile(spozh,probs=0.9))
+)
+
+write.csv(networkleveldel,"outputfile")
+
+# Station Level :
+
+stationleveldelivery<- setdel %>% group_by(delivery_station_code) %>%
+  summarise( 
+ avgspr=mean(spr)
+, p50spr=(quantile(spr,probs=0.5))
+, p90spr=(quantile(spr,probs=0.9))
+, avgspozh=mean(spozh)
+, p50spozh=(quantile(spozh,probs=0.5))
+, p90spozh=(quantile(spozh,probs=0.9))
+    )
+    
+write.csv(stationleveldelivery,"outputfile")
+
+
+
+Break Metrics :
+---------------
+# Network Level :
+
+read the file extracted from job3 etl into a df 
+
+storelevelcomp<- setbrk %>% group_by(store) %>%
+  summarise( 
+    aggregatebreak=(sum(break_length))
+	,countofbreaks=(length(break_length))
+    )
+    
+ 
+networklevelcompbrk<- 
+    summarise(
+        storelevelcomp
+        ,share0=(100*length(which(countofbreaks==0))/length(countofbreaks))
+        ,share1=(100*length(which(countofbreaks==1))/length(countofbreaks))
+        ,share2to3=(100*length(which(countofbreaks>1 & countofbreaks<4 ))/length(countofbreaks))
+		,share4to5=(100*length(which(countofbreaks>3 & countofbreaks<6 ))/length(countofbreaks))
+		,share5plus=(100*length(which(countofbreaks>5))/length(countofbreaks))
+        ,minval=min(aggregatebreak)
+        ,maxval=max(aggregatebreak)
+        ,meanval=mean(aggregatebreak,na.rm=TRUE)
+        ,p50brk=(quantile(aggregatebreak,probs=0.5))
+        ,p90brk=(quantile(aggregatebreak,probs=0.9))
+    )
+    
+    
+ write.csv(networklevelcompbrk,"outputfile.csv")
+ 
+ # Station Level : 
+ 
+ stnstorelevelcomp<- setbrk %>% group_by(delivery_station_code,store) %>%
+  summarise( 
+    aggregatebreak=(sum(break_length))
+	,countofbreaks=(length(break_length))
+    )
+    
+    
+    stnlevelcompbrk<- stnstorelevelcomp %>% group_by(delivery_station_code) %>%
+    summarise(
+        share0=(100*length(which(countofbreaks==0))/length(countofbreaks))
+        ,share1=(100*length(which(countofbreaks==1))/length(countofbreaks))
+        ,share2to3=(100*length(which(countofbreaks>1 & countofbreaks<4 ))/length(countofbreaks))
+		,share4to5=(100*length(which(countofbreaks>3 & countofbreaks<6 ))/length(countofbreaks))
+		,share5plus=(100*length(which(countofbreaks>5))/length(countofbreaks))
+        ,minval=min(aggregatebreak)
+        ,maxval=max(aggregatebreak)
+        ,meanval=mean(aggregatebreak,na.rm=TRUE)
+        ,p50brk=(quantile(aggregatebreak,probs=0.5))
+        ,p90brk=(quantile(aggregatebreak,probs=0.9))
+    )
+    
+    write.csv(stnlevelcompbrk,"outputfile")
+    
+    
+    
+    <EOF>
+
+
+
+
+    
+    
+    
